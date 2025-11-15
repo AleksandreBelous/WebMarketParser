@@ -1,8 +1,14 @@
 # _1a_Class_BrowserManager.py
 
+import os
+
 import undetected_chromedriver as uc
 
 CHROME_BINARY_PATH = "/usr/bin/google-chrome-stable"
+
+# Директория для хранения профиля Chrome
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+USER_DATA_DIR = os.path.join(APP_DIR, "chrome_profile")
 
 
 class BrowserManager:
@@ -23,6 +29,9 @@ class BrowserManager:
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
+
+        # Явно указываем директорию для данных пользователя
+        options.add_argument(f'--user-data-dir={USER_DATA_DIR}')
 
         self._options = options
 
