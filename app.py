@@ -4,6 +4,7 @@ import os
 import re
 import threading
 from datetime import datetime
+from dotenv import load_dotenv
 
 from flask import Flask, render_template, request, send_from_directory
 from flask_socketio import SocketIO
@@ -14,11 +15,14 @@ from _1a_Class_BrowserManager import BrowserManager
 from _1b_Class_OzonScraper import OzonScraper
 from _2_Scenarios import run_scenario_by_query, run_scenario_by_url  # Импортируем сценарии
 
+load_dotenv()
+
 # --- Настройка Flask ---
 app = Flask(__name__)
 STATIC_FOLDER = 'static'
 app.config['SECRET_KEY'] = 'a_very_secret_key'
-socketio = SocketIO(app)
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS")
+socketio = SocketIO(app, cors_allowed_origins=CORS_ALLOWED_ORIGINS)
 
 
 # --- Маршруты Flask ---
