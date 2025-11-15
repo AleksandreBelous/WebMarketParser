@@ -1,0 +1,103 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления парсером Ozon</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; color: #1877f2; }
+        input[type="text"], input[type="number"] { width: 95%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        button { background-color: #1877f2; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        button:disabled { background-color: #a0bdf2; cursor: not-allowed; }
+        #logs { background-color: #282c34; color: #abb2bf; padding: 15px; border-radius: 6px; margin-top: 20px; height: 300px; overflow-y: scroll; white-space: pre-wrap; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+        #result { margin-top: 20px; }
+    </style>
+    <!-- Подключаем библиотеку Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Панель управления Web Parser для Ozon</h1>
+
+    <form id="parser-form">
+        <label for="input_data">URL товара или поисковый запрос:</label>
+        <input type="text" id="input_data" name="input_data" required
+               placeholder="https://www.ozon.ru/product/... или игровая мышь">
+
+        <label for="max_items">Макс. количество товаров/аналогов:</label>
+        <input type="number" id="max_items" name="max_items" value="5" min="1">
+
+        <label for="pages">Количество страниц для сканирования:</label>
+        <input type="number" id="pages" name="pages" value="1" min="1">
+
+        <button type="submit" id="start-button">Начать парсинг</button>
+    </form>
+
+    <h2>Логи выполнения:</h2>
+    <div id="logs"></div>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    // Устанавливаем соединение с сервером
+    const socket = io();
+
+    const form = document.getElementById('parser-form');
+    const startButton = document.getElementById('start-button');
+    const logsContainer = document.getElementById('logs');
+    const resultContainer = document.getElementById('result');
+
+    // Обработчик события 'connect'
+    socket.on('connect', () => {
+        console.log('Успешно подключено к серверу!');
+        logsContainer.innerHTML += '<div>[INFO] Соединение с сервером установлено.</div>';
+    });
+
+    // Обработчик события 'log_message' от сервера
+    socket.on('log_message', (msg) => {
+        logsContainer.innerHTML += `<div>${msg.data}</div>`;
+        // Автоматическая прокрутка логов вниз
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    });
+
+    // Обработчик события 'task_started' от сервера
+    socket.on('task_started', (msg) => {
+        startButton.disabled = true;
+        startButton.innerText = 'В процессе...';
+        resultContainer.innerHTML = ''; // Очищаем предыдущий результат
+        logsContainer.innerHTML += `<div>[SYSTEM] ${msg.data}</div>`;
+    });
+
+    // Обработчик события 'parsing_finished' от сервера
+    socket.on('parsing_finished', (msg) => {
+        startButton.disabled = false;
+        startButton.innerText = 'Начать парсинг';
+        const resultLink = `<a href="${msg.result_url}" download>Скачать результаты (CSV)</a>`;
+        resultContainer.innerHTML = `<h3>Готово!</h3>${resultLink}`;
+        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. <a href="${msg.result_url}" download>Скачать файл</a>.</div>`;
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    });
+
+    // Отправка данных формы на сервер
+    form.addEventListener('submit', (e) => {
+        e.preventDefault(); // Предотвращаем стандартную отправку формы
+        logsContainer.innerHTML = ''; // Очищаем логи перед новым запуском
+
+        const inputData = document.getElementById('input_data').value;
+        const maxItems = document.getElementById('max_items').value;
+        const pages = document.getElementById('pages').value;
+
+        // Отправляем событие 'start_parsing' на сервер
+        socket.emit('start_parsing', {
+            input_data: inputData,
+            max_items: parseInt(maxItems),
+            pages: parseInt(pages)
+        });
+    });
+</script>
+</body>
+</html>

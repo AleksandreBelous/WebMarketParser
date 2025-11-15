@@ -1,0 +1,13 @@
+{
+  "run_mode"       : "query" ,
+  "input_url"      : "https://www.ozon.ru/product/vxe-igrovaya-mysh-besprovodnaya-dragonfly-r1se-1967943648/" ,
+  "input_query"    : "игровая мышь" ,
+  "parse_settings" : {
+    "pages_to_parse"          : 1 ,
+    "max_analogs_or_products" : 5
+  } ,
+  "output"         : {
+    "filename_prefix" : "ozon_results"
+  }
+}
+  
