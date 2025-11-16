@@ -17,7 +17,7 @@ class BrowserManager:
     Гарантирует, что браузер будет всегда корректно закрыт.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Инициализация менеджера."""
 
         self.driver = None

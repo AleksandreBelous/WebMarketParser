@@ -3,6 +3,8 @@
 import time
 import random
 import re
+import os
+from datetime import datetime
 from typing import Any
 from urllib.parse import quote
 
@@ -18,12 +20,19 @@ class OzonScraper:
     """
 
     BASE_DOMAIN = "https://www.ozon.ru"
+    # Папка для отладочных файлов внутри /app/static/
+    DEBUG_FOLDER = "debug"
 
-    def __init__(self, driver, logger_callback=print) -> None:
+    def __init__(self, driver, logger_callback=print):
         self.driver = driver
         self.log = logger_callback
 
-    def _human_delay(self, min_sec: int = 1, max_sec: int = 3) -> None:
+        # Создаем папку для отладки, если ее нет
+        static_debug_path = os.path.join('static', self.DEBUG_FOLDER)
+        os.makedirs(static_debug_path, exist_ok=True)
+
+    @staticmethod
+    def _human_delay(min_sec: int = 1, max_sec: int = 3) -> None:
         time.sleep(random.uniform(min_sec, max_sec))
 
     def _handle_popups(self) -> None:
@@ -77,7 +86,28 @@ class OzonScraper:
                     self._human_delay(3, 5)
 
             except Exception as e:
-                self.log(f"  - Ошибка при сборе ссылок: {e}. Прерываем сбор.")
+                # === БЛОК ОТЛАДКИ ===
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                screenshot_name = f"error_{timestamp}.png"
+                html_name = f"error_{timestamp}.html"
+
+                # Пути внутри папки static
+                screenshot_path_rel = os.path.join(self.DEBUG_FOLDER, screenshot_name)
+                html_path_rel = os.path.join(self.DEBUG_FOLDER, html_name)
+
+                # Абсолютные пути для сохранения
+                screenshot_path_abs = os.path.join('static', screenshot_path_rel)
+                html_path_abs = os.path.join('static', html_path_rel)
+
+                self.log(f"!!! КРИТИЧЕСКАЯ ОШИБКА. Сохраняю отладочную информацию... !!!")
+                self.driver.save_screenshot(screenshot_path_abs)
+
+                with open(html_path_abs, 'w', encoding='utf-8') as f:
+                    f.write(self.driver.page_source)
+
+                self.log(f"  - Скриншот: /static/{screenshot_path_rel}")
+                self.log(f"  - HTML: /static/{html_path_rel}")
+                self.log(f"  - Текст ошибки: {e}. Прерываем сбор.")
                 break
 
         return list(products_links_set)
@@ -94,8 +124,8 @@ class OzonScraper:
         try:
             # Название
             product_data["title"] = WebDriverWait(self.driver, 5).until(
-                EC.presence_of_element_located((By.TAG_NAME, "h1"))
-                ).text
+                    EC.presence_of_element_located((By.TAG_NAME, "h1"))
+                    ).text
 
             # Цена
             price_element = self.driver.find_element(By.CSS_SELECTOR,
