@@ -147,6 +147,12 @@ socket.on('parsing_finished', async (msg) => { // Делаем функцию а
     startButton.disabled = false;
     startButton.innerText = 'Начать парсинг';
 
+    // --- ДОБАВЛЕННЫЙ ДИАГНОСТИЧЕСКИЙ БЛОК ---
+    logsContainer.innerHTML += `<div>[DEBUG JS] Получено сообщение parsing_finished:</div>`;
+    logsContainer.innerHTML += `<div>[DEBUG JS] msg: ${JSON.stringify(msg)}</div>`;
+    logsContainer.innerHTML += `<div>[DEBUG JS] msg.csv_url: ${msg.csv_url}</div>`;
+    // --- КОНЕЦ ДИАГНОСТИЧЕСКОГО БЛОКА ---
+
     if (msg.csv_url) {
         try {
             // Асинхронно загружаем CSV по URL
@@ -169,6 +175,7 @@ socket.on('parsing_finished', async (msg) => { // Делаем функцию а
 
         } catch (error) {
             console.error('Ошибка при загрузке или отображении CSV:', error);
+            logsContainer.innerHTML += `<div>[ERROR JS] Ошибка при загрузке или отображении CSV: ${error.message}</div>`; // Логируем ошибку
             resultContainer.innerHTML = '<h3>Ошибка при отображении результата.</h3>';
         }
     } else {
