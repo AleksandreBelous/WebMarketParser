@@ -147,12 +147,21 @@ socket.on('parsing_finished', (msg) => {
     startButton.disabled = false;
     startButton.innerText = 'Начать парсинг';
 
-    if (msg.result_url) {
-        parseAndDisplayCsv(msg.csv_data); // Используем новую функцию
-        const resultLink = `<a href="${msg.result_url}" download>Скачать результаты (CSV)</a>`;
-        resultContainer.innerHTML = `<h3>Готово!</h3>${resultLink}`;
-        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. <a href="${msg.result_url}" download>Скачать файл</a>.</div>`;
+    // ПРОВЕРКА ИСПРАВЛЕНА: ищем вложенный объект result_urls
+    if (msg.result_urls && msg.result_urls.csv) {
+        // Отображаем таблицу из CSV
+        parseAndDisplayCsv(msg.csv_data);
+
+        // Генерируем ссылки на скачивание
+        let linksHTML = `<a href="${msg.result_urls.csv}" download>Скачать CSV</a>`;
+        if (msg.result_urls.xlsx) {
+            linksHTML += ` | <a href="${msg.result_urls.xlsx}" download>Скачать XLSX</a>`;
+        }
+
+        resultContainer.innerHTML = `<h3>Готово!</h3>${linksHTML}`;
+        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. ${linksHTML}</div>`;
     } else {
+        // Если результатов нет
         parseAndDisplayCsv(null); // Очищаем таблицу
         resultContainer.innerHTML = '<h3>Парсинг завершен безрезультатно.</h3>';
         logsContainer.innerHTML += `<div>[INFO] Парсинг завершен безрезультатно.</div>`;

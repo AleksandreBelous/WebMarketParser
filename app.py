@@ -13,7 +13,8 @@ import pandas as pd
 # Импортируем наши модули
 from _1a_Class_BrowserManager import BrowserManager
 from _1b_Class_OzonScraper import OzonScraper
-from _2_Scenarios import run_scenario_by_query, run_scenario_by_url  # Импортируем сценарии
+from _2_scenarios import run_scenario_by_query, run_scenario_by_url  # Импортируем сценарии
+from _3_save_files import save_results
 
 load_dotenv()
 
@@ -55,8 +56,6 @@ def handle_disconnect():
 
 @socketio.on('start_parsing')
 def handle_start_parsing(data):
-    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
-
     session_id = request.sid
     print(f"Получен запрос на парсинг от {session_id} с данными: {data}")
 
@@ -85,24 +84,32 @@ def handle_start_parsing(data):
                 df_results = run_scenario_by_query(input_data, pages, max_items, logger_callback=socket_logger)
 
             if df_results is not None and not df_results.empty:
-                # Сохраняем файл в папку downloads
-                filename_prefix = "analogs" if is_url else f"query_{input_data.replace(' ', '_')[:20]}"
-                filename = f"{filename_prefix}_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
-                filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+                base_filename = "analogs" if is_url else f"query_{input_data.replace(' ', '_')[:20]}"
 
-                df_results.to_csv(filepath, sep=';', index=False, encoding='utf-8')
-                socket_logger(f"Результаты сохранены в файл: {filename}")
+                # Используем новую функцию для сохранения
+                saved_files = save_results(df_results, base_filename, DOWNLOAD_FOLDER)
 
-                # Читаем содержимое файла для отправки на фронтенд
-                with open(filepath, 'r', encoding='utf-8') as f:
+                if not saved_files:
+                    raise Exception("Не удалось сохранить файлы результатов.")
+
+                socket_logger(f"Результаты сохранены в файлы: {', '.join(f['filename'] for f in saved_files.values())}")
+
+                # Читаем CSV для отображения в таблице
+                with open(saved_files['csv']['filepath'], 'r', encoding='utf-8') as f:
                     csv_content = f.read()
 
-                # Отправляем клиенту ссылку на скачивание и содержимое файла
-                socketio.emit('parsing_finished', {
-                        'result_url': f'/downloads/{filename}',
-                        'csv_data'  : csv_content
-                        }, room=session_id
-                              )
+                # Готовим данные для отправки на фронтенд
+                response_data = {
+                        'csv_data'   : csv_content,
+                        'result_urls': {
+                                'csv': f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
+                                }
+                        }
+
+                if 'xlsx' in saved_files:
+                    response_data['result_urls']['xlsx'] = f'/{DOWNLOAD_FOLDER}/{saved_files["xlsx"]["filename"]}'
+
+                socketio.emit('parsing_finished', response_data, room=session_id)
 
             else:
                 socket_logger("Парсинг завершился безрезультатно.")

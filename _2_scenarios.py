@@ -1,4 +1,4 @@
-# _2_Scenarios.py
+# _2_scenarios.py
 
 import pandas as pd
 from _1a_Class_BrowserManager import BrowserManager
@@ -20,10 +20,6 @@ def process_query(scraper: OzonScraper, query: str, pages: int, max_products: in
     all_products = []
 
     for i, link in enumerate(links):
-        if i >= max_products:
-            scraper.log(f"Достигнут лимит в {max_products} товаров.")
-            break
-
         product_data = scraper.parse_product_page(link)
         all_products.append(product_data)
 

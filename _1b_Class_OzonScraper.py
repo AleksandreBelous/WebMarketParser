@@ -61,6 +61,11 @@ class OzonScraper:
         products_links_set = set()
 
         for i in range(pages):
+
+            if len(products_links_set) >= max_products:
+                self.log(f"Собрано достаточное количество ссылок ({len(products_links_set)}), прекращаем скроллинг.")
+                break
+
             print(f"--- Сбор ссылок: итерация прокрутки {i + 1}/{pages} ---")
             self.log(f"--- Сбор ссылок: итерация прокрутки {i + 1}/{pages} ---")
 
@@ -79,6 +84,11 @@ class OzonScraper:
 
                         if href:
                             products_links_set.add(href.split("?")[0])
+                            if len(products_links_set) >= max_products:
+                                break  # Выходим из внутреннего цикла по ссылкам
+
+                    if len(products_links_set) >= max_products:
+                        break  # Выходим из среднего цикла по гридам
 
                 print(f"  - Собрано уникальных ссылок: {len(products_links_set)}")
                 self.log(f"  - Собрано уникальных ссылок: {len(products_links_set)}")
@@ -88,10 +98,6 @@ class OzonScraper:
                     self.log("  - Прокрутка вниз...")
                     self.driver.execute_script("window.scrollBy(0, window.innerHeight * 1.5);")
                     self._human_delay(3, 5)
-
-                if len(products_links_set) >= max_products:
-                    self.log(f"Достигнут лимит в {max_products} товаров.")
-                    break
 
             except Exception as e:
                 # === БЛОК ОТЛАДКИ ===

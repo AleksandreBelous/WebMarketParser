@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 
 # Импортируем наши модули
-from _2_Scenarios import run_scenario_by_query, run_scenario_by_url
+from _2_scenarios import run_scenario_by_query, run_scenario_by_url
 
 
 def load_settings(filepath="settings.json"):
