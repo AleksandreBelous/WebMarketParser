@@ -114,7 +114,7 @@ def handle_start_parsing(data):
                 socket_logger("--- ДАННЫЕ ДЛЯ ОТПРАВКИ ---")
                 socket_logger(f"Тип response_data: {type(response_data)}")
                 socket_logger(f"Ключи response_data: {response_data.keys()}")
-                socket_logger(f"URL-ы: {response_data.get('result_urls')}")
+                socket_logger(f"URL-ы: {response_data.get('csv_url')}, {response_data.get('xlsx_url')}")
                 socket_logger("--- ПОПЫТКА ОТПРАВКИ ---")
                 # --- КОНЕЦ ДИАГНОСТИЧЕСКОГО БЛОКА ---
 
