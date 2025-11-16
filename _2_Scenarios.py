@@ -35,7 +35,7 @@ def run_scenario_by_query(query: str, pages: int, max_products: int, logger_call
 
     print(f"--- ЗАПУСК СЦЕНАРИЯ: Поиск по запросу '{query}' ---")
 
-    with BrowserManager() as driver:
+    with BrowserManager(logger_callback=logger_callback) as driver:
         scraper = OzonScraper(driver, logger_callback=logger_callback)
         results_df = process_query(scraper, query, pages, max_products)
 
@@ -48,7 +48,7 @@ def run_scenario_by_url(url: str, pages: int, max_analogs: int, logger_callback=
     print(f"--- ЗАПУСК СЦЕНАРИЯ: Поиск аналогов для URL '{url[:50]}...' ---")
     all_results = []
 
-    with BrowserManager() as driver:
+    with BrowserManager(logger_callback=logger_callback) as driver:
         scraper = OzonScraper(driver, logger_callback=logger_callback)
 
         # 1. Парсинг исходного товара

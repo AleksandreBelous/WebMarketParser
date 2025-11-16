@@ -19,9 +19,10 @@ class BrowserManager:
     Гарантирует, что браузер будет всегда корректно закрыт.
     """
 
-    def __init__(self):
+    def __init__(self, logger_callback=print, use_virtual_display: bool = True):
         """Инициализация менеджера."""
 
+        self.log = logger_callback
         self.driver = None
         options = uc.ChromeOptions()
         prefs = { "profile.default_content_setting_values.geolocation": 2 }
@@ -32,7 +33,7 @@ class BrowserManager:
         # options.add_argument('--no-sandbox')
         # options.add_argument('--disable-dev-shm-usage')
 
-        self.use_virtual_display = True
+        self.use_virtual_display = use_virtual_display
         self.display = None
 
         # Явно указываем директорию для данных пользователя
@@ -43,19 +44,19 @@ class BrowserManager:
     def __enter__(self) -> uc.Chrome | None:
         """Метод, вызываемый при входе в блок 'with'."""
 
-        print("Запуск браузера...")
+        self.log("Запуск браузера...")
 
         try:
             if self.use_virtual_display:
-                print("Запуск виртуального дисплея...")
+                self.log("Запуск виртуального дисплея...")
                 self.display = Display(visible=False, size=(1920, 1080))
                 self.display.start()
-                print(f"Виртуальный дисплей запущен на DISPLAY={self.display.display}.")
+                self.log(f"Виртуальный дисплей запущен на DISPLAY={self.display.display}.")
 
                 os.environ['DISPLAY'] = f':{self.display.display}'
 
             self.driver = uc.Chrome(options=self._options)  # , browser_executable_path=CHROME_BINARY_PATH)
-            print("Браузер успешно запущен.")
+            self.log("Браузер успешно запущен.")
             return self.driver
 
         except Exception as e:
@@ -70,10 +71,10 @@ class BrowserManager:
         """Метод, вызываемый при выходе из блока 'with' (даже при ошибках)."""
 
         if self.driver:
-            print("Закрытие браузера...")
+            self.log("Закрытие браузера...")
             self.driver.quit()
 
         if self.display:
-            print("Остановка виртуального дисплея...")
+            self.log("Остановка виртуального дисплея...")
             self.display.stop()
-        print("Браузер закрыт.")
+        self.log("Браузер закрыт.")
