@@ -95,6 +95,7 @@ rfc3986-validator==0.1.1
 rfc3987-syntax==1.1.0
 rpds-py==0.28.0
 selenium==4.38.0
+selenium-stealth==1.0.6
 send2trash==1.8.3
 setuptools==80.9.0
 simple-websocket==1.1.0
