@@ -90,36 +90,26 @@ def handle_start_parsing(data):
                 saved_files = save_results(df_results, base_filename, DOWNLOAD_FOLDER)
 
                 if not saved_files:
-                    # Если файлы не сохранились, это ошибка.
-                    socket_logger("Ошибка: не удалось сохранить файлы результатов.")
-                    socketio.emit('parsing_finished', { }, room=session_id)
-                    return  # Важно выйти здесь
+                    raise Exception("Не удалось сохранить файлы результатов.")
 
                 socket_logger(f"Результаты сохранены в файлы: {', '.join(f['filename'] for f in saved_files.values())}")
 
+                # Читаем CSV для отображения в таблице
+                with open(saved_files['csv']['filepath'], 'r', encoding='utf-8') as f:
+                    csv_content = f.read()
+
                 # Готовим данные для отправки на фронтенд
-                # Готовим "плоский" словарь для отправки
                 response_data = {
-                        'csv_url': f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
+                        'csv_data'   : csv_content,
+                        'result_urls': {
+                                'csv': f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
+                                }
                         }
-                if 'xlsx' in saved_files:
-                    response_data['xlsx_url'] = f'/{DOWNLOAD_FOLDER}/{saved_files["xlsx"]["filename"]}'
-
-                # socketio.emit('parsing_finished', response_data, room=session_id)
-
-                # --- ДИАГНОСТИЧЕСКИЙ БЛОК ---
-                socket_logger("--- ДАННЫЕ ДЛЯ ОТПРАВКИ ---")
-                socket_logger(f"Тип response_data: {type(response_data)}")
-                socket_logger(f"Ключи response_data: {response_data.keys()}")
-                socket_logger(f"URL-ы: {response_data.get('csv_url')}, {response_data.get('xlsx_url')}")
-                socket_logger("--- ПОПЫТКА ОТПРАВКИ ---")
-                # --- КОНЕЦ ДИАГНОСТИЧЕСКОГО БЛОКА ---
 
                 socketio.emit('parsing_finished', response_data, room=session_id)
-                socket_logger("--- ОТПРАВКА ВЫПОЛНЕНА (предположительно) ---")
 
             else:
-                socket_logger("ELSE -> Парсинг завершился безрезультатно.")
+                socket_logger("Парсинг завершился безрезультатно.")
                 socketio.emit('parsing_finished', { }, room=session_id)  # Завершаем без ссылки
 
         except Exception as e:

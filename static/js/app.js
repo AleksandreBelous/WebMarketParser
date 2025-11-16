@@ -143,43 +143,23 @@ socket.on('task_started', (msg) => {
     logsContainer.innerHTML += `<div>[SYSTEM] ${msg.data}</div>`;
 });
 
-socket.on('parsing_finished', async (msg) => { // Делаем функцию асинхронной
+socket.on('parsing_finished', (msg) => {
     startButton.disabled = false;
     startButton.innerText = 'Начать парсинг';
 
-    // --- ДОБАВЛЕННЫЙ ДИАГНОСТИЧЕСКИЙ БЛОК ---
-    logsContainer.innerHTML += `<div>[DEBUG JS] Получено сообщение parsing_finished:</div>`;
-    logsContainer.innerHTML += `<div>[DEBUG JS] msg: ${JSON.stringify(msg)}</div>`;
-    logsContainer.innerHTML += `<div>[DEBUG JS] msg.csv_url: ${msg.csv_url}</div>`;
-    // --- КОНЕЦ ДИАГНОСТИЧЕСКОГО БЛОКА ---
+    // ПРОВЕРКА ИСПРАВЛЕНА: ищем вложенный объект result_urls
+    if (msg.result_urls && msg.result_urls.csv) {
+        // Отображаем таблицу из CSV
+        parseAndDisplayCsv(msg.csv_data);
 
-    if (msg.csv_url) {
-        try {
-            // Асинхронно загружаем CSV по URL
-            const response = await fetch(msg.csv_url);
-            if (!response.ok) {
-                throw new Error(`Ошибка загрузки CSV: ${response.statusText}`);
-            }
-            const csvData = await response.text();
+        // Генерируем ссылки на скачивание
+        let linksHTML = `<a href="${msg.result_urls.csv}" download>Скачать CSV</a>`;
 
-            parseAndDisplayCsv(csvData); // Отображаем таблицу
-
-            let linksHTML = `<a href="${msg.csv_url}" download>Скачать CSV</a>`;
-
-            if (msg.xlsx_url) {
-                linksHTML += ` | <a href="${msg.xlsx_url}" download>Скачать XLSX</a>`;
-            }
-
-            resultContainer.innerHTML = `<h3>Готово!</h3>${linksHTML}`;
-            logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. ${linksHTML}</div>`;
-
-        } catch (error) {
-            console.error('Ошибка при загрузке или отображении CSV:', error);
-            logsContainer.innerHTML += `<div>[ERROR JS] Ошибка при загрузке или отображении CSV: ${error.message}</div>`; // Логируем ошибку
-            resultContainer.innerHTML = '<h3>Ошибка при отображении результата.</h3>';
-        }
+        resultContainer.innerHTML = `<h3>Готово!</h3>${linksHTML}`;
+        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. ${linksHTML}</div>`;
     } else {
-        parseAndDisplayCsv(null);
+        // Если результатов нет
+        parseAndDisplayCsv(null); // Очищаем таблицу
         resultContainer.innerHTML = '<h3>Парсинг завершен безрезультатно.</h3>';
         logsContainer.innerHTML += `<div>[INFO] Парсинг завершен безрезультатно.</div>`;
     }

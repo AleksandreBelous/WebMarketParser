@@ -34,18 +34,4 @@ def save_results(df: pd.DataFrame, base_filename: str, directory: str) -> dict:
             'filepath': csv_filepath
             }
 
-    # --- Сохранение в XLSX ---
-    try:
-        xlsx_filename = f"{full_base_filename}.xlsx"
-        xlsx_filepath = os.path.join(directory, xlsx_filename)
-        df.to_excel(xlsx_filepath, index=False, engine='openpyxl')
-        saved_files['xlsx'] = {
-                'filename': xlsx_filename,
-                'filepath': xlsx_filepath
-                }
-    except ImportError:
-        print("Для сохранения в .xlsx установите библиотеку: pip install openpyxl")
-    except Exception as e:
-        print(f"Ошибка при сохранении в .xlsx: {e}")
-
     return saved_files
