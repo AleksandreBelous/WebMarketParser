@@ -55,6 +55,8 @@ def handle_disconnect():
 
 @socketio.on('start_parsing')
 def handle_start_parsing(data):
+    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
     session_id = request.sid
     print(f"Получен запрос на парсинг от {session_id} с данными: {data}")
 
