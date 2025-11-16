@@ -154,9 +154,6 @@ socket.on('parsing_finished', (msg) => {
 
         // Генерируем ссылки на скачивание
         let linksHTML = `<a href="${msg.result_urls.csv}" download>Скачать CSV</a>`;
-        if (msg.result_urls.xlsx) {
-            linksHTML += ` | <a href="${msg.result_urls.xlsx}" download>Скачать XLSX</a>`;
-        }
 
         resultContainer.innerHTML = `<h3>Готово!</h3>${linksHTML}`;
         logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. ${linksHTML}</div>`;
