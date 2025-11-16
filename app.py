@@ -106,7 +106,7 @@ def handle_start_parsing(data):
                 if 'xlsx' in saved_files:
                     response_data['xlsx_url'] = f'/{DOWNLOAD_FOLDER}/{saved_files["xlsx"]["filename"]}'
 
-                socketio.emit('parsing_finished', response_data, room=session_id)
+                # socketio.emit('parsing_finished', response_data, room=session_id)
 
                 # --- ДИАГНОСТИЧЕСКИЙ БЛОК ---
                 socket_logger("--- ДАННЫЕ ДЛЯ ОТПРАВКИ ---")
