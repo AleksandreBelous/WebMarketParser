@@ -143,22 +143,34 @@ socket.on('task_started', (msg) => {
     logsContainer.innerHTML += `<div>[SYSTEM] ${msg.data}</div>`;
 });
 
-socket.on('parsing_finished', (msg) => {
+socket.on('parsing_finished', async (msg) => { // Делаем функцию асинхронной
     startButton.disabled = false;
     startButton.innerText = 'Начать парсинг';
 
-    // ПРОВЕРКА ИСПРАВЛЕНА: ищем "плоский" ключ csv_url
     if (msg.csv_url) {
-        parseAndDisplayCsv(msg.csv_data);
+        try {
+            // Асинхронно загружаем CSV по URL
+            const response = await fetch(msg.csv_url);
+            if (!response.ok) {
+                throw new Error(`Ошибка загрузки CSV: ${response.statusText}`);
+            }
+            const csvData = await response.text();
 
-        // Генерируем ссылки на скачивание
-        let linksHTML = `<a href="${msg.csv_url}" download>Скачать CSV</a>`;
-        if (msg.xlsx_url) {
-            linksHTML += ` | <a href="${msg.xlsx_url}" download>Скачать XLSX</a>`;
+            parseAndDisplayCsv(csvData); // Отображаем таблицу
+
+            let linksHTML = `<a href="${msg.csv_url}" download>Скачать CSV</a>`;
+
+            if (msg.xlsx_url) {
+                linksHTML += ` | <a href="${msg.xlsx_url}" download>Скачать XLSX</a>`;
+            }
+
+            resultContainer.innerHTML = `<h3>Готово!</h3>${linksHTML}`;
+            logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. ${linksHTML}</div>`;
+
+        } catch (error) {
+            console.error('Ошибка при загрузке или отображении CSV:', error);
+            resultContainer.innerHTML = '<h3>Ошибка при отображении результата.</h3>';
         }
-
-        resultContainer.innerHTML = `<h3>Готово!</h3>${linksHTML}`;
-        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. ${linksHTML}</div>`;
     } else {
         parseAndDisplayCsv(null);
         resultContainer.innerHTML = '<h3>Парсинг завершен безрезультатно.</h3>';

@@ -101,10 +101,8 @@ def handle_start_parsing(data):
                 # Готовим данные для отправки на фронтенд
                 # Готовим "плоский" словарь для отправки
                 response_data = {
-                        'csv_data': csv_content,
-                        'csv_url' : f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
+                        'csv_url': f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
                         }
-
                 if 'xlsx' in saved_files:
                     response_data['xlsx_url'] = f'/{DOWNLOAD_FOLDER}/{saved_files["xlsx"]["filename"]}'
 
