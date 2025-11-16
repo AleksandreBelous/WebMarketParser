@@ -30,32 +30,42 @@ def process_query(scraper: OzonScraper, query: str, pages: int, max_products: in
     return pd.DataFrame(all_products)
 
 
-def run_scenario_by_query(query: str, pages: int, max_products: int, logger_callback=print) -> pd.DataFrame:
+def run_scenario_by_query(query: str, pages: int, max_products: int, logger_callback=print, proxy: dict = None
+                          ) -> pd.DataFrame:
     """Сценарий: поиск по запросу. Управляет жизненным циклом браузера."""
 
-    print(f"--- ЗАПУСК СЦЕНАРИЯ: Поиск по запросу '{query}' ---")
+    logger_callback(f"--- ЗАПУСК СЦЕНАРИЯ: Поиск по запросу '{query}' ---")
 
-    with BrowserManager(logger_callback=logger_callback) as driver:
+    with BrowserManager(logger_callback=logger_callback, proxy=proxy) as driver:
+        if not driver:
+            logger_callback("Не удалось запустить браузер. Прерывание сценария.")
+            return pd.DataFrame()
+
         scraper = OzonScraper(driver, logger_callback=logger_callback)
         results_df = process_query(scraper, query, pages, max_products)
 
     return results_df
 
 
-def run_scenario_by_url(url: str, pages: int, max_analogs: int, logger_callback=print) -> pd.DataFrame:
+def run_scenario_by_url(url: str, pages: int, max_analogs: int, logger_callback=print, proxy: dict = None
+                        ) -> pd.DataFrame:
     """Сценарий: поиск аналогов по URL. Управляет жизненным циклом браузера."""
 
-    print(f"--- ЗАПУСК СЦЕНАРИЯ: Поиск аналогов для URL '{url[:50]}...' ---")
+    logger_callback(f"--- ЗАПУСК СЦЕНАРИЯ: Поиск аналогов для URL '{url[:50]}...' ---")
     all_results = []
 
-    with BrowserManager(logger_callback=logger_callback) as driver:
+    with BrowserManager(logger_callback=logger_callback, proxy=proxy) as driver:
+        if not driver:
+            logger_callback("Не удалось запустить браузер. Прерывание сценария.")
+            return pd.DataFrame()
+
         scraper = OzonScraper(driver, logger_callback=logger_callback)
 
         # 1. Парсинг исходного товара
         initial_data = scraper.parse_product_page(url)
 
         if not initial_data or not initial_data["title"]:
-            print("Не удалось спарсить исходный товар. Завершение.")
+            logger_callback("Не удалось спарсить исходный товар. Завершение.")
             return pd.DataFrame()
 
         initial_data["is_initial"] = True
