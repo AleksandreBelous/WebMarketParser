@@ -27,7 +27,25 @@ STATIC_FOLDER = 'static'
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins=[CORS_ALLOWED_ORIGINS, "http://127.0.0.1:5000"])
 
 
-# browser_manager = BrowserManager()
+# --- Функция для получения настроек прокси из .env ---
+def get_proxy_settings():
+    """
+    Читает настройки прокси из переменных окружения.
+    Возвращает словарь с настройками или None, если их нет.
+    """
+    proxy_host = os.getenv("PROXY_HOST")
+    proxy_port = os.getenv("PROXY_PORT")
+    proxy_user = os.getenv("PROXY_USER")
+    proxy_pass = os.getenv("PROXY_PASS")
+
+    if proxy_host and proxy_port and proxy_user and proxy_pass:
+        return {
+            "host": proxy_host,
+            "port": int(proxy_port),
+            "user": proxy_user,
+            "pass": proxy_pass
+        }
+    return None
 
 
 # --- Маршруты Flask ---
@@ -69,6 +87,12 @@ def handle_start_parsing(data):
         input_data = task_data.get('input_data', '').strip()
         pages = task_data.get('pages', 1)
         max_items = task_data.get('max_items', 5)
+        
+        proxy_config = get_proxy_settings()
+        if proxy_config:
+            socket_logger("Используются настройки прокси.")
+        else:
+            socket_logger("Прокси не настроен. Запуск в обычном режиме.")
 
         df_results = None
 
@@ -76,11 +100,10 @@ def handle_start_parsing(data):
         is_url = input_data.startswith('http') and 'ozon.ru' in input_data
 
         try:
-
             if is_url:
-                df_results = run_scenario_by_url(input_data, pages, max_items, logger_callback=socket_logger)
+                df_results = run_scenario_by_url(input_data, pages, max_items, logger_callback=socket_logger, proxy=proxy_config)
             else:
-                df_results = run_scenario_by_query(input_data, pages, max_items, logger_callback=socket_logger)
+                df_results = run_scenario_by_query(input_data, pages, max_items, logger_callback=socket_logger, proxy=proxy_config)
 
             if df_results is not None and not df_results.empty:
                 # Сохраняем файл в папку static

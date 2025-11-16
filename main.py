@@ -48,11 +48,18 @@ def main():
 
     if settings:
         mode = settings.get("run_mode")
-        parse_conf = settings.get("parse_settings", { })
+        parse_conf = settings.get("parse_settings", {})
+        proxy_conf = settings.get("proxy_settings") # Получаем настройки прокси
+        
         pages = parse_conf.get("pages_to_parse", 1)
         max_items = parse_conf.get("max_analogs_or_products", 5)
 
         df_results = None
+        
+        if proxy_conf:
+            print("Используются настройки прокси.")
+        else:
+            print("Прокси не настроен. Запуск в обычном режиме.")
 
         if mode == "query":
             query = settings.get("input_query")
@@ -60,7 +67,7 @@ def main():
             if not query:
                 print("Ошибка: в 'settings.json' не указан 'input_query' для режима 'query'.")
             else:
-                df_results = run_scenario_by_query(query, pages=pages, max_products=max_items)
+                df_results = run_scenario_by_query(query, pages=pages, max_products=max_items, proxy=proxy_conf)
                 save_results(df_results, f"ozon_query_{query.replace(' ', '_')}")
 
         elif mode == "url":
@@ -69,7 +76,7 @@ def main():
             if not url:
                 print("Ошибка: в 'settings.json' не указан 'input_url' для режима 'url'.")
             else:
-                df_results = run_scenario_by_url(url, pages=pages, max_analogs=max_items)
+                df_results = run_scenario_by_url(url, pages=pages, max_analogs=max_items, proxy=proxy_conf)
                 save_results(df_results, "ozon_analogs")
 
         else:
