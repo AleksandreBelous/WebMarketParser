@@ -53,6 +53,7 @@ class OzonScraper:
 
         encoded_query = quote(query)
         search_url = f"{self.BASE_DOMAIN}/search/?text={encoded_query}&from_global=true"
+        print(f"Переход на страницу поиска: {search_url}")
         self.log(f"Переход на страницу поиска: {search_url}")
         self.driver.get(search_url)
         self._handle_popups()
@@ -60,6 +61,7 @@ class OzonScraper:
         products_links_set = set()
 
         for i in range(pages):
+            print(f"--- Сбор ссылок: итерация прокрутки {i + 1}/{pages} ---")
             self.log(f"--- Сбор ссылок: итерация прокрутки {i + 1}/{pages} ---")
 
             try:
@@ -78,9 +80,11 @@ class OzonScraper:
                         if href:
                             products_links_set.add(href.split("?")[0])
 
+                print(f"  - Собрано уникальных ссылок: {len(products_links_set)}")
                 self.log(f"  - Собрано уникальных ссылок: {len(products_links_set)}")
 
                 if i < pages - 1:
+                    print("  - Прокрутка вниз...")
                     self.log("  - Прокрутка вниз...")
                     self.driver.execute_script("window.scrollBy(0, window.innerHeight * 1.5);")
                     self._human_delay(3, 5)
@@ -99,6 +103,7 @@ class OzonScraper:
                 screenshot_path_abs = os.path.join('static', screenshot_path_rel)
                 html_path_abs = os.path.join('static', html_path_rel)
 
+                print(f"!!! КРИТИЧЕСКАЯ ОШИБКА. Сохраняю отладочную информацию... !!!")
                 self.log(f"!!! КРИТИЧЕСКАЯ ОШИБКА. Сохраняю отладочную информацию... !!!")
                 self.driver.save_screenshot(screenshot_path_abs)
 

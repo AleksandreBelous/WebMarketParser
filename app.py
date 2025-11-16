@@ -19,10 +19,15 @@ load_dotenv()
 
 # --- Настройка Flask ---
 app = Flask(__name__)
-STATIC_FOLDER = 'static'
 app.config['SECRET_KEY'] = 'a_very_secret_key'
+
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS")
-socketio = SocketIO(app, cors_allowed_origins=CORS_ALLOWED_ORIGINS)
+STATIC_FOLDER = 'static'
+
+socketio = SocketIO(app, async_mode='threading', cors_allowed_origins=[CORS_ALLOWED_ORIGINS, "http://127.0.0.1:5000"])
+
+
+# browser_manager = BrowserManager()
 
 
 # --- Маршруты Flask ---
@@ -80,10 +85,10 @@ def handle_start_parsing(data):
             if df_results is not None and not df_results.empty:
                 # Сохраняем файл в папку static
                 filename_prefix = "analogs" if is_url else f"query_{input_data.replace(' ', '_')[:20]}"
-                filename = f"{filename_prefix}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+                filename = f"{filename_prefix}_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
                 filepath = os.path.join(STATIC_FOLDER, filename)
 
-                df_results.to_csv(filepath, index=False, encoding='utf-8-sig')
+                df_results.to_csv(filepath, index=False, encoding='utf-8')
                 socket_logger(f"Результаты сохранены в файл: {filename}")
 
                 # Отправляем клиенту ссылку на скачивание
@@ -106,7 +111,5 @@ def handle_start_parsing(data):
 
 # --- Запуск приложения ---
 if __name__ == '__main__':
-    if not os.path.exists(STATIC_FOLDER):
-        os.makedirs(STATIC_FOLDER)
-
+    os.makedirs(STATIC_FOLDER, exist_ok=True)
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True)

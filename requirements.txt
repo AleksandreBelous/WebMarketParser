@@ -85,6 +85,7 @@ python-json-logger==4.0.0
 python-socketio==5.14.3
 python-telegram-bot==22.5
 pytz==2025.2
+pyvirtualdisplay==3.0
 pyyaml==6.0.3
 pyzmq==27.1.0
 referencing==0.37.0
