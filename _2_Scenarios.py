@@ -11,7 +11,7 @@ def process_query(scraper: OzonScraper, query: str, pages: int, max_products: in
     Эта функция НЕ управляет браузером.
     """
 
-    links = scraper.fetch_product_links(query, pages)
+    links = scraper.fetch_product_links(query, pages, max_products)
 
     if not links:
         scraper.log("Ссылки на товары не найдены.")

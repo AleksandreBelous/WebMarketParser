@@ -48,7 +48,7 @@ class OzonScraper:
         except Exception:
             self.log("  - Окно с cookies не найдено.")
 
-    def fetch_product_links(self, query: str, pages: int) -> list[str]:
+    def fetch_product_links(self, query: str, pages: int, max_products: int) -> list[str]:
         """Собирает ссылки на товары по поисковому запросу."""
 
         encoded_query = quote(query)
@@ -89,9 +89,13 @@ class OzonScraper:
                     self.driver.execute_script("window.scrollBy(0, window.innerHeight * 1.5);")
                     self._human_delay(3, 5)
 
+                if len(products_links_set) >= max_products:
+                    self.log(f"Достигнут лимит в {max_products} товаров.")
+                    break
+
             except Exception as e:
                 # === БЛОК ОТЛАДКИ ===
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
                 screenshot_name = f"error_{timestamp}.png"
                 html_name = f"error_{timestamp}.html"
 

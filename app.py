@@ -22,7 +22,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'a_very_secret_key'
 
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS")
-STATIC_FOLDER = 'static'
+DOWNLOAD_FOLDER = 'downloads'
 
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins=[CORS_ALLOWED_ORIGINS, "http://127.0.0.1:5000"])
 
@@ -36,10 +36,10 @@ def index():
     return render_template('index.html')
 
 
-# Маршрут для скачивания файлов из папки static
-@app.route('/static/<path:filename>')
+# Маршрут для скачивания файлов из папки downloads
+@app.route('/downloads/<path:filename>')
 def static_files(filename):
-    return send_from_directory(STATIC_FOLDER, filename, as_attachment=True)
+    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
 
 # --- Обработчики SocketIO ---
@@ -83,16 +83,24 @@ def handle_start_parsing(data):
                 df_results = run_scenario_by_query(input_data, pages, max_items, logger_callback=socket_logger)
 
             if df_results is not None and not df_results.empty:
-                # Сохраняем файл в папку static
+                # Сохраняем файл в папку downloads
                 filename_prefix = "analogs" if is_url else f"query_{input_data.replace(' ', '_')[:20]}"
                 filename = f"{filename_prefix}_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
-                filepath = os.path.join(STATIC_FOLDER, filename)
+                filepath = os.path.join(DOWNLOAD_FOLDER, filename)
 
-                df_results.to_csv(filepath, index=False, encoding='utf-8')
+                df_results.to_csv(filepath, sep=';', index=False, encoding='utf-8')
                 socket_logger(f"Результаты сохранены в файл: {filename}")
 
-                # Отправляем клиенту ссылку на скачивание
-                socketio.emit('parsing_finished', { 'result_url': f'/static/{filename}' }, room=session_id)
+                # Читаем содержимое файла для отправки на фронтенд
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    csv_content = f.read()
+
+                # Отправляем клиенту ссылку на скачивание и содержимое файла
+                socketio.emit('parsing_finished', {
+                        'result_url': f'/downloads/{filename}',
+                        'csv_data'  : csv_content
+                        }, room=session_id
+                              )
 
             else:
                 socket_logger("Парсинг завершился безрезультатно.")
@@ -111,5 +119,5 @@ def handle_start_parsing(data):
 
 # --- Запуск приложения ---
 if __name__ == '__main__':
-    os.makedirs(STATIC_FOLDER, exist_ok=True)
+    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
