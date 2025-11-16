@@ -99,15 +99,16 @@ def handle_start_parsing(data):
                     csv_content = f.read()
 
                 # Готовим данные для отправки на фронтенд
+                # Готовим "плоский" словарь для отправки
                 response_data = {
-                        'csv_data'   : csv_content,
-                        'result_urls': {
-                                'csv': f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
-                                }
+                        'csv_data': csv_content,
+                        'csv_url' : f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
                         }
 
                 if 'xlsx' in saved_files:
-                    response_data['result_urls']['xlsx'] = f'/{DOWNLOAD_FOLDER}/{saved_files["xlsx"]["filename"]}'
+                    response_data['xlsx_url'] = f'/{DOWNLOAD_FOLDER}/{saved_files["xlsx"]["filename"]}'
+
+                socketio.emit('parsing_finished', response_data, room=session_id)
 
                 # --- ДИАГНОСТИЧЕСКИЙ БЛОК ---
                 socket_logger("--- ДАННЫЕ ДЛЯ ОТПРАВКИ ---")
