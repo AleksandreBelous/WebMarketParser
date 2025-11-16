@@ -14,7 +14,8 @@ import pandas as pd
 from _1a_Class_BrowserManager import BrowserManager
 from _1b_Class_OzonScraper import OzonScraper
 from _2_scenarios import run_scenario_by_query, run_scenario_by_url  # Импортируем сценарии
-from _3_save_files import save_results
+
+# from _3_save_files import save_results
 
 load_dotenv()
 
@@ -84,29 +85,19 @@ def handle_start_parsing(data):
                 df_results = run_scenario_by_query(input_data, pages, max_items, logger_callback=socket_logger)
 
             if df_results is not None and not df_results.empty:
-                base_filename = "analogs" if is_url else f"query_{input_data.replace(' ', '_')[:20]}"
+                # Сохраняем файл в папку downloads
+                filename_prefix = "analogs" if is_url else f"query_{input_data.replace(' ', '_')[:20]}"
+                filename = f"{filename_prefix}_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
+                filepath = os.path.join(DOWNLOAD_FOLDER, filename)
 
-                # Используем новую функцию для сохранения
-                saved_files = save_results(df_results, base_filename, DOWNLOAD_FOLDER)
+                df_results.to_csv(filepath, sep=';', index=False, encoding='utf-8')
+                socket_logger(f"Результаты сохранены в файл: {filename}")
 
-                if not saved_files:
-                    raise Exception("Не удалось сохранить файлы результатов.")
-
-                socket_logger(f"Результаты сохранены в файлы: {', '.join(f['filename'] for f in saved_files.values())}")
-
-                # Читаем CSV для отображения в таблице
-                with open(saved_files['csv']['filepath'], 'r', encoding='utf-8') as f:
-                    csv_content = f.read()
-
-                # Готовим данные для отправки на фронтенд
-                response_data = {
-                        'csv_data'   : csv_content,
-                        'result_urls': {
-                                'csv': f'/{DOWNLOAD_FOLDER}/{saved_files["csv"]["filename"]}'
-                                }
-                        }
-
-                socketio.emit('parsing_finished', response_data, room=session_id)
+                # Отправляем клиенту только ссылку на скачивание
+                socketio.emit('parsing_finished', {
+                        'result_url': f'/{DOWNLOAD_FOLDER}/{filename}'
+                        }, room=session_id
+                              )
 
             else:
                 socket_logger("Парсинг завершился безрезультатно.")
