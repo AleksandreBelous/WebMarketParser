@@ -109,7 +109,17 @@ def handle_start_parsing(data):
                 if 'xlsx' in saved_files:
                     response_data['result_urls']['xlsx'] = f'/{DOWNLOAD_FOLDER}/{saved_files["xlsx"]["filename"]}'
 
+                # --- ДИАГНОСТИЧЕСКИЙ БЛОК ---
+                socket_logger("--- ДАННЫЕ ДЛЯ ОТПРАВКИ ---")
+                socket_logger(f"Тип response_data: {type(response_data)}")
+                socket_logger(f"Ключи response_data: {response_data.keys()}")
+                socket_logger(f"URL-ы: {response_data.get('result_urls')}")
+                socket_logger("--- ПОПЫТКА ОТПРАВКИ ---")
+                # --- КОНЕЦ ДИАГНОСТИЧЕСКОГО БЛОКА ---
+
                 socketio.emit('parsing_finished', response_data, room=session_id)
+                socket_logger("--- ОТПРАВКА ВЫПОЛНЕНА (предположительно) ---")
+
 
             else:
                 socket_logger("Парсинг завершился безрезультатно.")
