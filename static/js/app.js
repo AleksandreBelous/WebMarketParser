@@ -143,37 +143,17 @@ socket.on('task_started', (msg) => {
     logsContainer.innerHTML += `<div>[SYSTEM] ${msg.data}</div>`;
 });
 
-socket.on('parsing_finished', async (msg) => {
+socket.on('parsing_finished', (msg) => {
     startButton.disabled = false;
     startButton.innerText = 'Начать парсинг';
 
     if (msg.result_url) {
-        // --- ДИАГНОСТИЧЕСКИЙ БЛОК ---
-        logsContainer.innerHTML += `<div>[DEBUG JS] Получено сообщение parsing_finished:</div>`;
-        logsContainer.innerHTML += `<div>[DEBUG JS] msg: ${JSON.stringify(msg)}</div>`;
-        logsContainer.innerHTML += `<div>[DEBUG JS] msg.result_url: ${msg.result_url}</div>`;
-        // --- КОНЕЦ ДИАГНОСТИЧЕСКОГО БЛОКА ---
-
-        // Теперь фронтенд должен загрузить CSV по этой ссылке
-        try {
-            const response = await fetch(msg.result_url);
-            if (!response.ok) {
-                throw new Error(`Ошибка загрузки CSV: ${response.statusText}`);
-            }
-            const csvData = await response.text();
-
-            parseAndDisplayCsv(csvData); // Отображаем таблицу
-
-            const resultLink = `<a href="${msg.result_url}" download>Скачать результаты (CSV)</a>`;
-            resultContainer.innerHTML = `<h3>Готово!</h3>${resultLink}`;
-            logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. <a href="${msg.result_url}" download>Скачать файл</a>.</div>`;
-        } catch (error) {
-            console.error('Ошибка при загрузке или отображении CSV:', error);
-            logsContainer.innerHTML += `<div>[ERROR JS] Ошибка при загрузке или отображении CSV: ${error.message}</div>`;
-            resultContainer.innerHTML = '<h3>Ошибка при отображении результата.</h3>';
-        }
+        parseAndDisplayCsv(msg.csv_data); // Используем новую функцию
+        const resultLink = `<a href="${msg.result_url}" download>Скачать результаты (CSV)</a>`;
+        resultContainer.innerHTML = `<h3>Готово!</h3>${resultLink}`;
+        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. <a href="${msg.result_url}" download>Скачать файл</a>.</div>`;
     } else {
-        parseAndDisplayCsv(null);
+        parseAndDisplayCsv(null); // Очищаем таблицу
         resultContainer.innerHTML = '<h3>Парсинг завершен безрезультатно.</h3>';
         logsContainer.innerHTML += `<div>[INFO] Парсинг завершен безрезультатно.</div>`;
     }

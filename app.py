@@ -93,9 +93,14 @@ def handle_start_parsing(data):
                 df_results.to_csv(filepath, sep=';', index=False, encoding='utf-8')
                 socket_logger(f"Результаты сохранены в файл: {filename}")
 
-                # Отправляем клиенту только ссылку на скачивание
+                # Читаем содержимое файла для отправки на фронтенд
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    csv_content = f.read()
+
+                # Отправляем клиенту ссылку на скачивание и содержимое файла
                 socketio.emit('parsing_finished', {
-                        'result_url': f'/{DOWNLOAD_FOLDER}/{filename}'
+                        'result_url': f'/{DOWNLOAD_FOLDER}/{filename}',
+                        'csv_data'  : csv_content
                         }, room=session_id
                               )
 
