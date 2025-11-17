@@ -21,6 +21,7 @@ load_dotenv()
 # --- Настройка Flask ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'a_very_secret_key'
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0 # Не кешировать статические файлы
 
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS")
 DOWNLOAD_FOLDER = 'downloads'
