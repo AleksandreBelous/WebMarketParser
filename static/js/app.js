@@ -68,7 +68,7 @@ function renderTable() {
     container.innerHTML = html;
 
     // Добавляем обработчики кликов на новые заголовки
-    addSortEventListeners();
+    setTimeout(addSortEventListeners, 0); // Вызываем асинхронно
 }
 
 /**
