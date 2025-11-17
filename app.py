@@ -14,8 +14,7 @@ import pandas as pd
 from _1a_Class_BrowserManager import BrowserManager
 from _1b_Class_OzonScraper import OzonScraper
 from _2_scenarios import run_scenario_by_query, run_scenario_by_url  # Импортируем сценарии
-
-# from _3_save_files import save_results
+from _3_save_files import save_parsing_results
 
 load_dotenv()
 
@@ -85,24 +84,27 @@ def handle_start_parsing(data):
                 df_results = run_scenario_by_query(input_data, pages, max_items, logger_callback=socket_logger)
 
             if df_results is not None and not df_results.empty:
-                # Сохраняем файл в папку downloads
-                filename_prefix = "analogs" if is_url else f"query_{input_data.replace(' ', '_')[:20]}"
-                filename = f"{filename_prefix}_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
-                filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+                # Используем централизованную функцию для сохранения
+                saved_info = save_parsing_results(
+                        df=df_results,
+                        input_data=input_data,
+                        is_url=is_url,
+                        directory=DOWNLOAD_FOLDER,
+                        logger_callback=socket_logger
+                        )
 
-                df_results.to_csv(filepath, sep=';', index=False, encoding='utf-8')
-                socket_logger(f"Результаты сохранены в файл: {filename}")
+                if saved_info and 'filepath' in saved_info and 'csv_content' in saved_info:
+                    # Отправляем клиенту ссылку на скачивание и содержимое файла
+                    result_filename = os.path.basename(saved_info['filepath'])
+                    socketio.emit('parsing_finished', {
+                            'result_url': f'/{DOWNLOAD_FOLDER}/{result_filename}',
+                            'csv_data'  : saved_info['csv_content']
+                            }, room=session_id
+                                  )
 
-                # Читаем содержимое файла для отправки на фронтенд
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    csv_content = f.read()
-
-                # Отправляем клиенту ссылку на скачивание и содержимое файла
-                socketio.emit('parsing_finished', {
-                        'result_url': f'/{DOWNLOAD_FOLDER}/{filename}',
-                        'csv_data'  : csv_content
-                        }, room=session_id
-                              )
+                else:
+                    socket_logger("Ошибка при сохранении результатов парсинга.")
+                    socketio.emit('parsing_finished', { }, room=session_id)
 
             else:
                 socket_logger("Парсинг завершился безрезультатно.")
