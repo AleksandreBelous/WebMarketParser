@@ -94,15 +94,19 @@ def handle_start_parsing(data):
                         logger_callback=socket_logger
                         )
 
-                if saved_info and 'filepath' in saved_info and 'csv_content' in saved_info:
-                    # Отправляем клиенту ссылку на скачивание и содержимое файла
-                    result_filename = os.path.basename(saved_info['filepath'])
-                    socketio.emit('parsing_finished', {
-                            'result_url': f'/{DOWNLOAD_FOLDER}/{result_filename}',
-                            'csv_data'  : saved_info['csv_content']
-                            }, room=session_id
-                                  )
+                response_data = { }
 
+                if saved_info and 'csv_filepath' in saved_info and 'csv_content' in saved_info:
+                    result_filename = os.path.basename(saved_info['csv_filepath'])
+                    response_data['result_url'] = f'/{DOWNLOAD_FOLDER}/{result_filename}'
+                    response_data['csv_data'] = saved_info['csv_content']
+
+                if saved_info and 'xlsx_filepath' in saved_info:
+                    xlsx_filename = os.path.basename(saved_info['xlsx_filepath'])
+                    response_data['xlsx_url'] = f'/{DOWNLOAD_FOLDER}/{xlsx_filename}'
+
+                if response_data:
+                    socketio.emit('parsing_finished', response_data, room=session_id)
                 else:
                     socket_logger("Ошибка при сохранении результатов парсинга.")
                     socketio.emit('parsing_finished', { }, room=session_id)

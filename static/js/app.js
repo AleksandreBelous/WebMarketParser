@@ -161,15 +161,26 @@ socket.on('parsing_finished', (msg) => {
     startButton.disabled = false;
     startButton.innerText = 'Начать парсинг';
 
+    let resultHtml = '<h3>Готово!</h3>';
+
     if (msg.result_url) {
         parseAndDisplayCsv(msg.csv_data); // Используем новую функцию
-        const resultLink = `<a href="${msg.result_url}" download>Скачать результаты (CSV)</a>`;
-        resultContainer.innerHTML = `<h3>Готово!</h3>${resultLink}`;
-        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. <a href="${msg.result_url}" download>Скачать файл</a>.</div>`;
+        resultHtml += `<a href="${msg.result_url}" download>Скачать результаты (CSV)</a>`;
+        logsContainer.innerHTML += `<div>[SUCCESS] Задача выполнена. <a href="${msg.result_url}" download>Скачать CSV</a>.</div>`;
     } else {
         parseAndDisplayCsv(null); // Очищаем таблицу
-        resultContainer.innerHTML = '<h3>Парсинг завершен безрезультатно.</h3>';
         logsContainer.innerHTML += `<div>[INFO] Парсинг завершен безрезультатно.</div>`;
+    }
+
+    if (msg.xlsx_url) {
+        resultHtml += `<br><a href="${msg.xlsx_url}" download>Скачать результаты (XLSX)</a>`;
+        logsContainer.innerHTML += `<div>[INFO] Доступен XLSX файл: <a href="${msg.xlsx_url}" download>Скачать XLSX</a>.</div>`;
+    }
+
+    if (resultHtml === '<h3>Готово!</h3>') { // Если нет ни CSV, ни XLSX
+        resultContainer.innerHTML = '<h3>Парсинг завершен безрезультатно.</h3>';
+    } else {
+        resultContainer.innerHTML = resultHtml;
     }
 
     logsContainer.scrollTop = logsContainer.scrollHeight;
