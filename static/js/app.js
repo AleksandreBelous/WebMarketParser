@@ -65,19 +65,33 @@ function renderTable() {
     });
 
     html += '</tbody></table>';
+
+    // прямо перед container.innerHTML = html;
+    console.debug('[table] rendering table, html headers snippet:', html.slice(0, 400));
+
     container.innerHTML = html;
 
     // Добавляем обработчики кликов на новые заголовки
-    setTimeout(addSortEventListeners, 0); // Вызываем асинхронно
+    // setTimeout(addSortEventListeners, 0); // старое
+    addSortEventListeners(); // вызывать сразу — надежнее на разных окружениях
 }
 
 /**
  * Добавляет обработчики кликов на заголовки таблицы для сортировки.
  */
 function addSortEventListeners() {
-    document.querySelectorAll('#csv-table-container th').forEach(th => {
+    const ths = document.querySelectorAll('#csv-table-container th');
+    console.debug('[table] addSortEventListeners called, headers count =', ths.length, 'sortState=', sortState);
+    if (!ths || ths.length === 0) {
+        console.warn('[table] no <th> found in #csv-table-container — check that table markup contains <thead> and <th data-column="...">');
+    }
+    ths.forEach(th => {
+        // защищаем от двойного навешивания
+        if (th.__hasSortHandler) return;
+        th.__hasSortHandler = true;
         th.addEventListener('click', () => {
             const column = th.dataset.column;
+            console.debug('[table] header clicked:', column);
             sortTable(column);
         });
     });
