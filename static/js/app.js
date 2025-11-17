@@ -189,3 +189,52 @@ form.addEventListener('submit', (e) => {
         pages: parseInt(pages)
     });
 });
+
+// --- Надёжное делегирование и экспорт sortTable ---
+// Поместите этот код **после** определения функции sortTable и после основной логики файла.
+
+try {
+  // Экспортируем sortTable в window (на случай, если она объявлена локально)
+  if (typeof sortTable === 'function') {
+    window.sortTable = sortTable;
+    console.debug('[table] sortTable exported to window');
+  } else {
+    console.debug('[table] sortTable function not found at export time. It may be defined later.');
+  }
+
+  // Навешиваем делегирование на контейнер - работает независимо от перерисовок таблицы
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('csv-table-container') || document.querySelector('.csv-table')?.parentElement || document.body;
+    if (!container) {
+      console.warn('[table] csv container not found for delegation');
+      return;
+    }
+
+    container.addEventListener('click', function (e) {
+      const th = e.target.closest('th');
+      if (!th) return;
+      const column = th.dataset.column || th.getAttribute('data-column');
+      if (!column) return;
+      console.debug('[table] delegated header click:', column);
+
+      // Вызов сортировки через глобальную точку входа
+      if (typeof window.sortTable === 'function') {
+        try {
+          window.sortTable(column);
+        } catch (err) {
+          console.error('[table] sortTable threw error:', err);
+        }
+      } else if (typeof sortTable === 'function') {
+        try {
+          sortTable(column);
+        } catch (err) {
+          console.error('[table] local sortTable threw error:', err);
+        }
+      } else {
+        console.error('[table] sortTable not found');
+      }
+    }, false);
+  });
+} catch (err) {
+  console.error('[table] delegation setup failed:', err);
+}
