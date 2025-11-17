@@ -17,15 +17,23 @@
     <h1>Панель управления Web Parser для Ozon</h1>
 
     <form id="parser-form">
-        <label for="input_data">URL товара или поисковый запрос:</label>
-        <input type="text" id="input_data" name="input_data" required
-               placeholder="https://www.ozon.ru/product/... или игровая мышь">
+        <div class="form-group">
+            <label for="input_data">URL товара или поисковый запрос:</label>
+            <input type="text" id="input_data" name="input_data" required
+                   placeholder="https://www.ozon.ru/product/... или игровая мышь">
+        </div>
 
-        <label for="max_items">Максимальное количество товаров/аналогов для поиска:</label>
-        <input type="number" id="max_items" name="max_items" value="5" min="1">
+        <div class="form-row">
+            <div class="form-group-inline">
+                <label for="max_items">Максимальное количество товаров/аналогов для поиска:</label>
+                <input type="number" id="max_items" name="max_items" value="5" min="1">
+            </div>
 
-        <label for="pages">Количество движений колёсиком мыши (глубина прокручивания страницы):</label>
-        <input type="number" id="pages" name="pages" value="10" min="1">
+            <div class="form-group-inline">
+                <label for="pages">Количество движений колёсиком мыши (глубина прокручивания страницы):</label>
+                <input type="number" id="pages" name="pages" value="10" min="1">
+            </div>
+        </div>
 
         <button type="submit" id="start-button">Начать парсинг</button>
     </form>

@@ -6,8 +6,8 @@ body {
     padding: 20px;
 }
 .container {
-    // max-width: 800px;
-    // margin: 0 auto;
+    /* max-width: 800px; */
+    /* margin: 0 auto; */
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
@@ -19,12 +19,36 @@ h1 {
     color: #1877f2;
 }
 
+/* Новые стили для группировки полей */
+.form-group {
+    margin-bottom: 15px; /* Отступ между группами полей */
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap; /* Позволяет элементам переноситься на новую строку при нехватке места */
+    gap: 20px; /* Расстояние между элементами в строке */
+    margin-bottom: 15px;
+}
+
+.form-group-inline {
+    flex: 1; /* Позволяет элементам занимать равное пространство */
+    min-width: 280px; /* Минимальная ширина для каждого поля, чтобы они не были слишком узкими */
+}
+
 input[type="text"], input[type="number"] {
-    width: 95%;
+    width: 95%; /* Изменено на 95% для учета padding и border */
     padding: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 10px; /* Убрано, так как form-group управляет отступами */
     border: 1px solid #ddd;
     border-radius: 6px;
+    box-sizing: border-box; /* Включает padding и border в общую ширину */
+}
+
+label {
+    display: block; /* Чтобы метка занимала всю ширину и поле ввода начиналось с новой строки */
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
 button {
@@ -35,6 +59,7 @@ button {
     border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
+    margin-top: 10px; /* Добавлен отступ сверху для кнопки */
 }
 
 button:disabled {
